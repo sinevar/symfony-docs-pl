@@ -1,17 +1,19 @@
 .. index::
    single: Apache Router
 
-How to use the Apache Router
-============================
+Jak używać Apache Router
+========================
 
-Symfony2, while fast out of the box, also provides various ways to increase that speed with a little bit of tweaking.
-One of these ways is by letting apache handle routes directly, rather than using Symfony2 for this task.
+Symfony2, mimo tego, iż szybkie z założenia, prezentuje dodatkowe sposoby na
+zwiększenie szybkości za sprawą pewnych udoskonaleń. Jednym z nich jest pozwolenie
+serwerowi Apache na obsługiwanie wszystkich tras.
 
-Change Router Configuration Parameters
+Zmiana parametrów konfiguracji Routera
 --------------------------------------
 
-To dump Apache routes you must first tweak some configuration parameters to tell
-Symfony2 to use the ``ApacheUrlMatcher`` instead of the default one:
+W celu zrzucenia tras serwera Apache należy najpierw dopracować kilka parametrów
+konfiguracyjnych tak, aby Symfony2 zamiast swojej domyślnej klasy, używało
+klasę ``ApacheUrlMatcher``:
 
 .. configuration-block::
 
@@ -19,14 +21,14 @@ Symfony2 to use the ``ApacheUrlMatcher`` instead of the default one:
 
         # app/config/config_prod.yml
         parameters:
-            router.options.matcher.cache_class: ~ # disable router cache
+            router.options.matcher.cache_class: ~ # wyłączenie pamięci podręcznej routera
             router.options.matcher_class: Symfony\Component\Routing\Matcher\ApacheUrlMatcher
 
     .. code-block:: xml
 
         <!-- app/config/config_prod.xml -->
         <parameters>
-            <parameter key="router.options.matcher.cache_class">null</parameter> <!-- disable router cache -->
+            <parameter key="router.options.matcher.cache_class">null</parameter> <!-- wyłączenie pamięci podręcznej routera-->
             <parameter key="router.options.matcher_class">
                 Symfony\Component\Routing\Matcher\ApacheUrlMatcher
             </parameter>
@@ -35,7 +37,7 @@ Symfony2 to use the ``ApacheUrlMatcher`` instead of the default one:
     .. code-block:: php
 
         // app/config/config_prod.php
-        $container->setParameter('router.options.matcher.cache_class', null); // disable router cache
+        $container->setParameter('router.options.matcher.cache_class', null); // wyłączenie pamięci podręcznej routera
         $container->setParameter(
             'router.options.matcher_class',
             'Symfony\Component\Routing\Matcher\ApacheUrlMatcher'
@@ -43,16 +45,16 @@ Symfony2 to use the ``ApacheUrlMatcher`` instead of the default one:
 
 .. tip::
 
-    Note that :class:`Symfony\\Component\\Routing\\Matcher\\ApacheUrlMatcher`
-    extends :class:`Symfony\\Component\\Routing\\Matcher\\UrlMatcher` so even
-    if you don't regenerate the url_rewrite rules, everything will work (because
-    at the end of ``ApacheUrlMatcher::match()`` a call to ``parent::match()``
-    is done).
+    Należy pamiętać, że :class:`Symfony\\Component\\Routing\\Matcher\\ApacheUrlMatcher`
+    rozszerza :class:`Symfony\\Component\\Routing\\Matcher\\UrlMatcher`, zatem
+    nawet gdy nie przegeneruje się url_rewrite_rules, wszystko będzie wciąż
+    działać (ponieważ na koniec metody ``ApacheUrlMatcher::match()`` wołana jest
+    metoda rodzica ``parent::match()``).
 
-Generating mod_rewrite rules
-----------------------------
+Generowanie reguł mod_rewrite
+-----------------------------
 
-To test that it's working, let's create a very basic route for demo bundle:
+Aby sprawdzić czy to działa, należy stworzyć podstawową trasę dla pakietu demo:
 
 .. configuration-block::
 
@@ -77,17 +79,17 @@ To test that it's working, let's create a very basic route for demo bundle:
             '_controller' => 'AcmeDemoBundle:Demo:hello',
         )));
 
-Now generate **url_rewrite** rules:
+Teraz należy wygenerować reguły **url_rewrite**:
 
 .. code-block:: bash
 
     $ php app/console router:dump-apache -e=prod --no-debug
 
-Which should roughly output the following:
+Które powinny prezentować się następująco:
 
 .. code-block:: apache
 
-    # skip "real" requests
+    # pomija "prawdziwe" żądania
     RewriteCond %{REQUEST_FILENAME} -f
     RewriteRule .* - [QSA,L]
 
@@ -95,8 +97,8 @@ Which should roughly output the following:
     RewriteCond %{REQUEST_URI} ^/hello/([^/]+?)$
     RewriteRule .* app.php [QSA,L,E=_ROUTING__route:hello,E=_ROUTING_name:%1,E=_ROUTING__controller:AcmeDemoBundle\:Demo\:hello]
 
-You can now rewrite `web/.htaccess` to use the new rules, so with this example
-it should look like this:
+Można teraz zaktualizować plik `web/.htaccess`, aby używał on nowo wygenerowanych
+reguł, zatem w tym przypadku powinno to wyglądać tak:
 
 .. code-block:: apache
 
@@ -114,16 +116,17 @@ it should look like this:
 
 .. note::
 
-   Procedure above should be done each time you add/change a route if you want to take full advantage of this setup
+   Aby w pełni skorzystać z tej konfiguracji, powyższą procedurę należy
+   przeprowadzać za każdym razem, gdy dodaje się lub zmienia trasę
 
-That's it!
-You're now all set to use Apache Route rules.
+To jest to!
+Wszystko zostało ustawione tak, aby można było korzystać z reguł tras na serwerze Apache.
 
-Additional tweaks
------------------
+Dodatkowe ulepszenia
+--------------------
 
-To save a little bit of processing time, change occurrences of ``Request``
-to ``ApacheRequest`` in ``web/app.php``::
+Aby zaoszczędzić nieco na czasie przetwarzania, należy zmienić wystąpienia
+``Request`` na ``ApacheRequest`` w pliku ``web/app.php``::
 
     // web/app.php
 
