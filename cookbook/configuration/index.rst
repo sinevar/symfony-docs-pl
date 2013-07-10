@@ -1,5 +1,5 @@
-Configuration
-=============
+Konfiguracja
+============
 
 .. toctree::
     :maxdepth: 2
